@@ -4,7 +4,7 @@ from datetime import datetime;
 
 from app.extensions import db
 
-from flask import flash, redirect, render_template, url_for
+from flask import flash, redirect, render_template, url_for, current_app
 from sqlalchemy import and_, or_, func as sql_func
 
 
@@ -77,23 +77,26 @@ class Startup(db.Model):
         #   SELECT count(battle_id) FROM battle WHERE winner_id = self.id;
         battle_points: int = 0
         try:
-            b = db.session.query(Battle).filter(Battle.winner_id, self.id).count();
+            b = db.session.query(Battle).filter(Battle.winner_id == self.id).count();
         except:
             b = 0;
             
         if isinstance(b, int): battle_points = 30*b;
+        
+        
         points += battle_points
         
         #   Pontos por eventos registrados
         event_points: int = 0;        
         try:
-            e = db.session.query(Event).filter(Event.startup_id, self.id).all();
+            e = db.session.query(Event).filter(Event.startup_id == self.id).all();
             for event in e:
-                points += e.get_value();
+                event_points += event.get_value();
         except:
             e = 0;
             
         points += event_points;
+        
             
         self.points = points;
         return points;
@@ -252,13 +255,17 @@ class Battle(db.Model):
         
         #   Decide o vencedor da batalha
         if startup_a.get_points() > startup_b.get_points():
+            startup_a.win_battle();
             self.winner_id = startup_a.id
         elif startup_a.get_points() < startup_b.get_points():
+            startup_b.win_battle();
             self.winner_id = startup_b.id
         else:
             #   Shark
             s = random.choice([startup_a, startup_b])
             self.winner_id = s.id
+            s.win_battle();
+            s.points += 2;
         
         self.status = 'completed';
         db.session.commit();
@@ -281,13 +288,12 @@ class Battle(db.Model):
         
     def render(self):
         return render_template('battles/card.html',
-                               battle=self,
-                               startup_a=Startup.query.get(self.startup_a_id),
-                               startup_b=Startup.query.get(self.startup_b_id),
-                               events_a=Event.query.filter_by(startup_id=self.startup_a_id).all(),
-                               events_b=Event.query.filter_by(startup_id=self.startup_b_id).all(),
-                               )
-        
+                                battle=self,
+                                startup_a=Startup.query.get(self.startup_a_id),
+                                startup_b=Startup.query.get(self.startup_b_id),
+                                events_a=Event.query.filter_by(startup_id=self.startup_a_id).all(),
+                                events_b=Event.query.filter_by(startup_id=self.startup_b_id).all(),
+                                );
     def winner(self) -> Startup:
         """
         Retorna o vencedor da batalha.
@@ -415,12 +421,25 @@ class Tournament(db.Model):
         self.battles        = [];
         self.name           = "Torneio de Startups";
         self.id             = 1;
+        
+        #   Inicia o torneio        
         self.first_round(startups);
         
     def __repr__(self):
         return f'<Tournament {self.id}>'
     
     #   Torneio
+    def get_winner(self) -> Startup:
+        """
+        Se o torneio já estiver concluido, retorna a startup vencedora.
+        
+        Returns
+        -------
+        Startup
+            A startup vencedora do torneio.
+        """
+        return self.battles[-1].get_winner();
+    
     def first_round(self, startups: list[Startup]):
         """Verifica se o torneio recebeu uma quantidade aceitável de startups e, se sim, inicia o primeiro round.
 
@@ -429,21 +448,19 @@ class Tournament(db.Model):
         startups : list[Startup]
             Uma lista de startups que participam do torneio.
         """
-        
-        if len(startups) not in tournament_rules:
-            raise Exception("O torneio precisa de pelo menos 4 startups cadastradas para ser iniciado. São aceitos exclusivamente torneios de 4, 6 ou 8 startups.")
-        
         self.status = "in_progress"
         self.current_round = 1
         self.battles = self.generate_battles(startups);
-    
+        
     def next_round(self):
         """
         Avança o torneio para o próximo nível, se for possível.
         """
         if(self.chk_round()):
             self.current_round += 1;
-            self.battles = self.generate_battles(self.round_winners());
+            winners_ids = [b[0] for b in db.session.query(Battle.winner_id).filter(Battle.round_number == self.current_round - 1).all()];
+            startups = db.session.query(Startup).filter(Startup.id.in_(winners_ids)).all();
+            self.battles = self.generate_battles(startups);
     
     #   Acessores
     def completed_battles(self) -> set[Battle]:
@@ -473,53 +490,50 @@ class Tournament(db.Model):
         list[Battle]
             Uma lista de batalhas para o round atual.
         """
-        n_battles : int         = self.get_nbattles_round(self.get_n_initial_players(), self.current_round);
-        battles : list[Battle]  = [];
-        
-        if self.current_round == 1:
-            winners = startups;
-        else:
-            winners : list[Startup] = self.round_winners();
-        
-        #   `n_battles` par e não múltiplo de 3
-        if n_battles % 2 == 0 and n_battles % 3 != 0:
-            for _ in range(n_battles):
-                try:
-                    a = random.choice(winners);
-                    b = random.choice(winners);
-                    
-                    winners.remove(a);
-                    winners.remove(b);
-                    
-                    battles.append(Battle(tournament_id=self.id, round_number=self.current_round, startup_a_id=a.id, startup_b_id=b.id, status="in_progress"));
-                    db.session.add(battles[-1]);
-                    
-                except:
-                    break;
-        #   `n_battles` par e múltiplo de 3 (#6)
-        elif n_battles % 2 == 0 and n_battles % 3 == 0:
-            for _ in range(n_battles):
-                try:
-                    a = random.choice(winners);
-                    b = random.choice(winners);
-                    
-                    winners.remove(a);
-                    winners.remove(b);
-                    
-                    battles.append(Battle(tournament_id=self.id, round_number=self.current_round, startup_a_id=a.id, startup_b_id=b.id, status="in_progress"));
-                    db.session.add(battles[-1]);
-                except:
-                    break;
+        with current_app.app_context():
             
-            #   Startup que sobrou
-            if (len(winners) == 1):
-                s = winners[0];
-                s.win_battle();
-                winners.remove(s);
+            flash(str(len(startups)));
             
-        db.session.commit();
-        return battles;
-      
+            match(len(startups)):
+                case 2 | 3: n_battles = 1;
+                case 4: n_battles = 2;
+                case 6: n_battles = 3;
+                case 8: n_battles = 4;
+                case _: raise Exception("O torneio precisa de pelo menos 4 startups para prosseguir. Você pode gerenciar somente torneios de 4, 6 ou 8 startups.");
+            
+            if(len(startups) == 3):
+                #   Seleciona a startup com mais pontos e avança para o próximo round
+                startup_1 = max(startups, key=lambda s: s.points);
+                startups.remove(startup_1);
+                startup_1.win_battle();
+                
+                #   Monta uma batalha com as outras duas startups
+                st_a, st_b = startups[0], startups[1];
+                b = Battle(tournament_id=self.id,
+                           round_number=self.current_round,
+                           startup_a_id=st_a.id,
+                           startup_b_id=st_b.id,
+                           status="not_started");
+                db.session.add(b);
+                db.session.commit();
+                return [b];
+            else:
+                while(startups):
+                    if(len(startups) == 1): break;
+                    random.shuffle(startups);
+                    st_a, st_b = startups[0], startups[1];
+                    startups.remove(st_a);
+                    startups.remove(st_b);
+                    b = Battle(tournament_id=self.id,
+                               round_number=self.current_round,
+                               startup_a_id=st_a.id,
+                                startup_b_id=st_b.id,
+                               status="not_started");
+                    db.session.add(b);
+                db.session.commit();
+                return self.battles;
+                
+                
     
     #   Verificadores
     def chk_round(self) -> bool:
@@ -530,7 +544,15 @@ class Tournament(db.Model):
         Returns:
             bool: Verdadeiro se todas as batalhas do round atual foram concluídas.
         """
-        return len(self.current_round_battles()) == tournament_rules[len(self.get_n_initial_players())][1][self.current_round - 1];
+        #   batalhas deste round: select * from battle where tournament_id = self.id and round_number = self.current_round;
+        b : list[Battle] = db.session.query(Battle).filter(Battle.tournament_id == self.id, Battle.round_number == self.current_round).all();
+        
+        for battle in b:
+            if(not battle.status == "completed"):
+                return False;
+            
+        
+        return True;
     
     def is_completed(self) -> bool:
         """
@@ -584,4 +606,15 @@ class Tournament(db.Model):
         int
             O número de batalhas esperadas.
         """
-        return tournament_rules[n_initial_players][1][curr_round - 1];
+        try:
+            battles = tournament_rules[n_initial_players];
+            flash(f"battles {battles}")
+            return battles[curr_round - 1];
+        except Exception as e:
+            flash(f"Não conseguiu decidir o número de batalhas: {e}")
+    
+    
+    
+    
+    
+
