@@ -15,27 +15,59 @@ def index():
     tournament_winner: Vencedor do torneio
     """
     try:
-        tournament = db.session.query(Tournament).filter(Tournament.status.in_(['completed', 'in_progress'])).first()
-
-        if tournament:
-            if tournament.status == 'completed':
-                return render_template('tournament/index.html', 
-                                       current_tournament=tournament, 
-                                       tournament_winner=tournament.winner, 
-                                       battles=tournament.battles)
-            
-            if tournament.status == 'in_progress':
-                if tournament:
-                    with app.app_context():
-                        tournament.next_round(tournament.round_winners())
-                    return render_template('tournament/index.html', current_tournament=tournament, battles=tournament.battles);
-                else:
-                    return render_template('tournament/index.html');
-            
+        #   Extrai o último torneio criado
+        current_tournament = Tournament.query.order_by(Tournament.id.desc()).first();
+        
+        #   Este torneio terminou?
+        if current_tournament:
+            try:
+                if current_tournament.status == 'completed':
+                    #   Busca o vencedor do torneio
+                    tournament_winner = Startup.query.get(current_tournament.winner_id);
+                    
+                    #   Busca as batalhas do torneio
+                    battles = Battle.query.filter(Battle.tournament_id == current_tournament.id).all();
+                    
+                    #   Busca os eventos das batalhas do torneio
+                    events = Event.query.filter(Event.battle_id.in_([b.id for b in battles])).all();
+                    
+                    return render_template('tournament/index.html',
+                                        current_tournament=current_tournament,
+                                        battles=battles,
+                                        tournament_winner=tournament_winner,
+                                        events=events);
+            except Exception as e:
+                flash(f"Existe um torneio, mas não conseguiu extrair o vencedor: {e}", "danger");
+                return render_template('tournament/index.html');
+        
+            #   Este torneio está em andamento?
+            try:
+                if current_tournament.status == 'in_progress':
+                    #   Busca as batalhas do torneio
+                    battles = Battle.query.filter(Battle.tournament_id == current_tournament.id).all();
+                    
+                    #   Filtra as batalhas, de modo que as batalhas em andamento estejam acima daquelas já completas
+                    battles = [b for b in battles if b.status == 'not_started'] + [b for b in battles if b.status == 'completed'];
+                    
+                    #   Busca os eventos das batalhas do torneio
+                    events = Event.query.filter(Event.battle_id.in_([b.id for b in battles])).all();
+                    
+                    return render_template('tournament/index.html',
+                                        current_tournament=current_tournament,
+                                        battles=battles,
+                                        events=events);
+            except Exception as e:
+                flash(f"Existe um torneio, mas não conseguiu extrair as batalhas: {e}", "danger");
+                return render_template('tournament/index.html');
+        
+        #   Não existe torneio em andamento
+        else:
+            return render_template('tournament/index.html');
     except Exception as e:
-        flash(f'Erro ao buscar torneio: {e}', 'danger')
-    
+        flash(f"Não existe torneio em andamento: {e}", "danger");
+        return render_template('tournament/index.html');
     return render_template('tournament/index.html')
+
 @tournament_bp.route('/create', methods=['GET'])
 def create():
     """
@@ -46,27 +78,32 @@ def create():
 @tournament_bp.route('/create', methods=['POST'])
 def create_tournament():
     try:
+        # Extrai as startups selecionadas do formulário
         startup_ids = request.form.getlist('startups[]')
-        startups = [Startup.query.get(startup_id) for startup_id in startup_ids]        
+        startups = [Startup.query.get(startup_id) for startup_id in startup_ids]
+
+        # Verifica se foram selecionadas startups
         if not startups:
             flash('É necessário selecionar pelo menos 4 ou mais (4, 6, 8) startups.', 'danger')
-            return redirect(url_for('tournament.create'));
+            return redirect(url_for('tournament.create'))
+
+        # Verifica se foram selecionadas 4, 6 ou 8 startups
         if len(startups) not in [4, 6, 8]:
             flash('Só é possível realizar torneios com 4, 6 ou 8 startups.', 'danger')
-            return redirect(url_for('tournament.create'));
+            return redirect(url_for('tournament.create'))
+
+        # Cria o torneio
+        tournament = Tournament()
+        tournament.initialize(startups);
+        db.session.add(tournament)
+        db.session.commit()
         
-        #   Se já existe um torneio anterior, exclui-o
-        db.session.query(Tournament).filter(Tournament.status == 'in_progress').delete();
-        db.session.commit();
-        
-        tournament = Tournament(startups=startups)
-        db.session.add(tournament);
-        db.session.commit();
-            
+        flash(f'Torneio {tournament.id} criado com sucesso!', 'success')
+
     except Exception as e:
-        flash(f'Erro ao criar torneio: {e} = {e.args} = {type(e)}', 'danger')
-        
-    return redirect(url_for('tournament.index'));
+        flash(f'Erro ao criar torneio: {e}', 'danger')
+
+    return redirect(url_for('tournament.index'))
 
 #   Inserção de batalha no torneio
 @tournament_bp.route('/add_battle/<int:tournament_id>/<int:startup_a_id>/<int:startup_b_id>', methods=['POST'])

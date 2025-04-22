@@ -435,7 +435,7 @@ class Tournament(db.Model):
         Retorna uma representação do torneio.
     """
     __tablename__ = 'tournament'
-    id              = db.Column(db.Integer, primary_key=True)
+    id              = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name            = db.Column(db.String(255), nullable=False)
     status          = db.Column(db.String(20), nullable=False)
     current_round   = db.Column(db.Integer, nullable=False)
@@ -448,11 +448,11 @@ class Tournament(db.Model):
         self.status         = "in_progress"
         self.current_round  = 0
         self.battles        = [];
-        self.id             = random.randint(1000, 9999);
-        self.name           = f"Torneio de Startups [#{self.id}]";
+        self.name           = "";
         
-        #   Inicia o torneio
-        self.next_round(startups=startups);
+    def initialize(self, startups: list[Startup]):
+        self.name = f"Torneio de Startups (#{self.id})";
+        self.next_round(startups);
         
         
     def __repr__(self):
@@ -463,6 +463,9 @@ class Tournament(db.Model):
         Avança o torneio para o próximo nível, se for possível.
         """
         with app.app_context():  # Garante que todo o código está no mesmo contexto
+            if self.status == "completed":
+                return;
+            
             try:
                 # Verifica se o torneio já foi finalizado
                 if self.current_round >= 4 or startups == []:
