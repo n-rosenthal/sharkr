@@ -28,7 +28,6 @@ Sistema web para simulação de um torneio entre startups, onde competidoras dis
 ### Pré-requisitos
 - Python 3.9+
 - Pip
-- Git (opcional)
 
 ### Passo a Passo
 
@@ -70,4 +69,4 @@ flask db upgrade
 python3 run.py
 ```
 
-Se todas as instruções foram executadas com sucesso, o servidor estara pronto para ser acessado em http://127.0.0.1:5000/ (ou http://localhost:5000, normalmente, salvo modificações) e o banco de dados estara pronto para ser usado.
+Se todas as instruções foram executadas com sucesso, o servidor estara pronto para ser acessado em http://127.0.0.1:5000/ (ou http://localhost:5000, normalmente, salvo modificações) e o banco de dados estará pronto para ser usado.
