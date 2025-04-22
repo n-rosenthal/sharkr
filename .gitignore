@@ -1,0 +1,6 @@
+*.pyc
+sharkr/venv
+.venv
+.venv/*
+.vscode
+.vscode/*

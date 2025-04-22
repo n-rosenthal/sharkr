@@ -7,13 +7,37 @@
 {% block title %}Batalha {{ battle.id }} | sharkr {% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2>Batalha {{ battle.id }} (Torneio {{ tournament.id }}, round {{ battle.round_number }})</h2>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Batalha {{ battle.id }} (Torneio {{ tournament.id }}, round {{ battle.round_number }})</h2>
+        <div class="text-muted font-weight-light">
+            <span>Status: {{ battle.status|capitalize }}</span>
+        </div>
     </div>
     <div class="card-body">
-        <p>Startup A: {{ battle.startup_a.name }} ({{ battle.startup_a.score }} pontos)</p>
-        <p>Startup B: {{ battle.startup_b.name }} ({{ battle.startup_b.score }} pontos)</p>
+        <div class="d-flex justify-content-between">
+            <div>
+                <h3 class="mb-0">{{ startup_a.name }}</h3>
+                <p class="mb-0">{{ startup_a.get_points() }} pontos</p>
+                {% if events_a %}
+                    <div class="mt-2">
+                    {% for event in events_a %}
+                        {{ event.render()|safe }}
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div>
+                <h3 class="mb-0">{{ startup_b.name }}</h3>
+                <p class="mb-0">{{ startup_b.get_points() }} pontos</p>
+                {% if events_b %}
+                    <div class="mt-2">
+                    {% for event in events_b %}
+                        {{ event.render()|safe }}
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-</div>
 {% endblock %}

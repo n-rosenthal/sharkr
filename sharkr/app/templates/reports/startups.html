@@ -1,0 +1,32 @@
+<div class="card">
+    <div class="card-header">
+        <h2>Relatórios</h2>
+    </div>
+    
+    <!--    Lista de Startups ordenadas por pontuação -->
+    {% if startups %}
+    <div class="card-body">
+        <h3 class="card-title">Startups por Pontuação</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Startup</th>
+                    <th>Pontuação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for startup in startups %}
+                <tr>
+                    <td>{{ startup.name }}</td>
+                    <td>{{ startup.get_points() }} pontos</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="card-body">
+            <p class="text-muted">Nenhuma startup registrada ainda.</p>
+        </div>
+    {% endif %}
+    </div>

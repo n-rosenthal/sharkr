@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}raíz | sharkr{% endblock %}
+
+{% block content %}
+<body>
+    <div class="container">
+        <div class="row">
+            <!-- Chamada para a aplicação, descrição breve -->
+            <div class="col-md-6 mb-4">
+                <div class="description mb-4">
+                    <h2>Bem-vindo à Plataforma de Competição de Startups</h2>
+                    <p class="lead">Gerencie startups em batalhas de pitch, selecionando eventos para aumentar ou diminuir a pontação de cada startup.
+                       Acompanhe seu desempenho e tenha acesso aos relatórios de desempenho do torneio.</p> 
+                    </div>
+
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('startup.index') }}" class="btn btn-primary start-button">Começar Agora</a>
+                </div>
+            </div>
+
+            <!-- "Passo a passo", como funciona a aplicação -->
+            <div class="col-md-6">
+                <div class="how-to-use mb-4">
+                    <h3>Como Funciona:</h3>
+                    <div class="features mt-3">
+                        <div class="feature-card mb-3">
+                            <h4>1. Cadastro</h4>
+                            <p class="lead">Registre as startups para participarem do torneio</p>
+                        </div>
+                        <div class="feature-card mb-3">
+                            <h4>2. Batalhas</h4>
+                            <p class="lead">Participe de rodadas eliminatórias, nas quais duas startups se enfrentam. Decida quem vence!</p>
+                        </div>
+                        <div class="feature-card mb-3">
+                            <h4>3. Relatórios</h4>
+                            <p class="lead">Veja como as startups se saíram no torneio</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

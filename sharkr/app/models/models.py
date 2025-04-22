@@ -1,13 +1,17 @@
 import random;
+import json;
 from itertools import combinations;
 from datetime import datetime;
+from typing import Optional
 
 from app.extensions import db
 
 from flask import flash, redirect, render_template, url_for, current_app
 from sqlalchemy import and_, or_, func as sql_func
 
-
+#   Histórico
+from app.models.history import BattleEntry;
+from app import app;
 
 class Startup(db.Model):
     """
@@ -124,20 +128,16 @@ class Event(db.Model):
     __tablename__ = 'event'
 
     id              = db.Column(db.Integer, primary_key=True);
-    user_id         = db.Column(db.Integer, nullable=False);
     startup_id      = db.Column(db.Integer, nullable=False);
     event_type      = db.Column(db.String(20), nullable=False);
     battle_id       = db.Column(db.Integer, db.ForeignKey('battle.id'), nullable=False)
     
-    def __init__(self, user_id, startup_id, event_type, battle_id):
+    def __init__(self, startup_id, event_type, battle_id):
         """
         Construtor para objetos `Event`
         
         Parameters
-        ----------
-        user_id : int
-            O id do utilizador que registrou o evento.
-            
+        ----------            
         startup_id : int
             O id da startup que registrou o evento.
             
@@ -147,7 +147,6 @@ class Event(db.Model):
         battle_id : int
             O id da batalha em que o evento ocorreu.
         """
-        self.user_id = user_id
         self.startup_id = startup_id
         self.event_type = event_type
         self.battle_id = battle_id
@@ -182,6 +181,13 @@ class Event(db.Model):
             case _:
                 return 0;
             
+    def to_dict(self) -> dict:
+        return {
+            'id': self.id,
+            'startup_id': self.startup_id,
+            'event_type': self.event_type,
+            'battle_id': self.battle_id
+        }
 
 
 class Battle(db.Model):
@@ -269,6 +275,21 @@ class Battle(db.Model):
         
         self.status = 'completed';
         db.session.commit();
+        
+        points_a, points_b = startup_a.get_points(), startup_b.get_points();
+        events_a, events_b = json.dumps([event.to_dict() for event in db.session.query(Event).filter(Event.startup_id == startup_a.id).all()]), json.dumps([event.to_dict() for event in db.session.query(Event).filter(Event.startup_id == startup_b.id).all()]);
+        
+        #   Cria um objeto histórico da batalha
+        history = BattleEntry(startup_a=db.session.query(Startup).get(self.startup_a_id).id,
+                              startup_b=db.session.query(Startup).get(self.startup_b_id).id,
+                              tournament_name=Tournament.query.get(self.tournament_id).name,
+                              round_number=self.round_number,
+                              winner=self.winner_id,
+                              startup_a_points=points_a,
+                              startup_b_points=points_b,
+                              startup_a_events=events_a,
+                              startup_b_events=events_b,
+                              );
         return True
     
     def shark(self):
@@ -360,8 +381,17 @@ def delete_all_battles():
 class Tournament(db.Model):
     """``Tournament``
     Representação de um torneio entre ``Startup``s.
-    
     Um torneio é uma lista de batalhas entre startups.
+    Somente é possível realizar torneios de 4, 6 ou 8 participantes.
+    
+    Estrutura do torneio:
+    -   4 participantes: 2 rounds
+        -   round 1 com 2 batalhas, round 2 com uma batalha final.
+    -   6 participantes: 3 rounds
+        -   round 1 com 3 batalhas, round 2 com 1 batalha entre vencedores do round 1. No round 3, o vencedor do round 1 que não disputou no round 2, irá enfrentar o vencedor do round 2.
+    -   8 participantes: 3 rounds
+        -   round 1 com 4 batalhas, round 2 com 2 batalhas entre vencedores do round 1. No round 3, o vencedor do round 1 que não disputou no round 2, irá enfrentar o vencedor do round 2.
+    
     
     Attributes
     ----------
@@ -415,53 +445,96 @@ class Tournament(db.Model):
         """
         Construtor para objetos ``Tournament``.
         """
-        startups            = startups;
-        self.status         = "not_started";
-        self.current_round  = 0;
+        self.status         = "in_progress"
+        self.current_round  = 0
         self.battles        = [];
-        self.name           = "Torneio de Startups";
-        self.id             = 1;
+        self.id             = random.randint(1000, 9999);
+        self.name           = f"Torneio de Startups [#{self.id}]";
         
-        #   Inicia o torneio        
-        self.first_round(startups);
+        #   Inicia o torneio
+        self.next_round(startups=startups);
+        
         
     def __repr__(self):
         return f'<Tournament {self.id}>'
-    
-    #   Torneio
-    def get_winner(self) -> Startup:
-        """
-        Se o torneio já estiver concluido, retorna a startup vencedora.
         
-        Returns
-        -------
-        Startup
-            A startup vencedora do torneio.
-        """
-        return self.battles[-1].get_winner();
-    
-    def first_round(self, startups: list[Startup]):
-        """Verifica se o torneio recebeu uma quantidade aceitável de startups e, se sim, inicia o primeiro round.
-
-        Parameters
-        ----------
-        startups : list[Startup]
-            Uma lista de startups que participam do torneio.
-        """
-        self.status = "in_progress"
-        self.current_round = 1
-        self.battles = self.generate_battles(startups);
-        
-    def next_round(self):
+    def next_round(self, startups: list[Startup]) -> None:
         """
         Avança o torneio para o próximo nível, se for possível.
         """
-        if(self.chk_round()):
-            self.current_round += 1;
-            winners_ids = [b[0] for b in db.session.query(Battle.winner_id).filter(Battle.round_number == self.current_round - 1).all()];
-            startups = db.session.query(Startup).filter(Startup.id.in_(winners_ids)).all();
-            self.battles = self.generate_battles(startups);
-    
+        with app.app_context():  # Garante que todo o código está no mesmo contexto
+            try:
+                # Verifica se o torneio já foi finalizado
+                if self.current_round >= 4 or startups == []:
+                    self.status = "completed"
+                    db.session.commit()
+                    return
+
+                # Atualiza o torneio na sessão atual
+                self = db.session.merge(self)
+
+                # Lógica para cada round
+                if self.current_round == 0:
+                    self.current_round += 1
+                    self._create_battles(startups)
+                
+                elif self.chk_round() and self.current_round == 1:
+                    self.current_round += 1
+                    if len(startups) == 3:
+                        self._handle_special_case(startups)
+                    else:
+                        self._create_battles(startups)
+                
+                if self.current_round == 2:
+                    self.current_round += 1
+                    self._create_battles(startups)
+                
+                db.session.commit()
+
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Erro crítico: {e}", "danger")
+                raise  # Opcional: Logar o erro para debug
+
+    def _create_battles(self, startups: list[Startup]) -> None:
+        """Cria batalhas para a lista de startups."""
+        while len(startups) >= 2:
+            random.shuffle(startups)
+            a = db.session.merge(startups.pop())  # Mescla na sessão atual
+            b = db.session.merge(startups.pop())
+
+            battle = Battle(
+                tournament_id=self.id,
+                round_number=self.current_round,
+                startup_a_id=a.id,
+                startup_b_id=b.id,
+                status="not_started"
+            )
+            
+            self.battles.append(battle)
+            db.session.add(battle)
+
+    def _handle_special_case(self, startups: list[Startup]) -> None:
+        """Lida com o caso especial de 3 startups no round 2."""
+        random.shuffle(startups)
+        a = db.session.merge(startups.pop())
+        b = db.session.merge(startups.pop())
+        c = db.session.merge(startups.pop())
+
+        battle = Battle(
+            tournament_id=self.id,
+            round_number=self.current_round,
+            startup_a_id=a.id,
+            startup_b_id=b.id,
+            status="not_started"
+        )
+        
+        self.battles.append(battle)
+        db.session.add(battle)
+        c.points += 30
+
+        
+
     #   Acessores
     def completed_battles(self) -> set[Battle]:
         """
@@ -491,7 +564,10 @@ class Tournament(db.Model):
             Uma lista de batalhas para o round atual.
         """
         with current_app.app_context():
+            if(self.status == "completed"):
+                return [];
             
+            #   dev 
             flash(str(len(startups)));
             
             match(len(startups)):
@@ -550,9 +626,23 @@ class Tournament(db.Model):
         for battle in b:
             if(not battle.status == "completed"):
                 return False;
-            
-        
         return True;
+    
+    def get_winner(self) -> Optional[Startup]:
+        """
+        Se o torneio já estiver concluido, retorna a startup vencedora.
+        
+        Returns
+        -------
+        Startup
+            A startup vencedora do torneio.
+        """
+        if self.is_completed():
+            try:
+                return self.battles[-1].winner();
+            except:
+                return None;
+        return None;
     
     def is_completed(self) -> bool:
         """
@@ -562,9 +652,8 @@ class Tournament(db.Model):
             bool: Verdadeiro se o torneio foi concluído.
         """
         return self.status == "completed";
+     #   Métodos Auxiliares
     
-    
-    #   Métodos Auxiliares
     def round_winners(self) -> list[Startup]:
         """
         Retorna uma lista com os startups que venceram o round atual.
@@ -574,7 +663,7 @@ class Tournament(db.Model):
         """
         return [b.winner() for b in self.current_round_battles()];
     
-    def get_n_initial_players(self) -> int:
+    def get_n_initial_players(self) -> Optional[int]:
         """
         Retorna o número de players iniciais.
         
@@ -587,7 +676,11 @@ class Tournament(db.Model):
         #   SELECT count(DISTINCT startup_id) FROM battle WHERE tournament_id = self.id AND round_number = 1;
         n_battles = db.session.query(Battle).filter(Battle.tournament_id == self.id).filter(Battle.round_number == 1).count();
         
-        return (n_battles * 2);
+        #   Verifica se o número de batalhas é par
+        if n_battles % 2 == 0:
+            return n_battles * 2;
+        else:
+            raise ValueError("O número de batalhas do primeiro round deve ser par");
         
     def get_nbattles_round(self, n_initial_players: int, curr_round: int) -> int:
         """

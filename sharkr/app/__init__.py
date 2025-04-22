@@ -25,14 +25,17 @@ from app.routes.report_routes       import report_bp        #   Relatórios
 #   Blueprint para página raiz
 index_bp = Blueprint('index', __name__, url_prefix='/');
 
-#   Redirecionamento da página raiz para '/auth/login'
+#   Redirecionamento da página raiz
 @index_bp.route('/')
+@index_bp.route('/index')
+@index_bp.route('/logout')
 def index():
-    return redirect(url_for('auth.login'));
+    return render_template('root.html');
+
+#   Rota para sair ("logout")
 
 #   Registro das blueprint de rotas
-app.register_blueprint(index_bp)
-app.register_blueprint(auth_bp)
+app.register_blueprint(index_bp);
 app.register_blueprint(startup_bp)
 app.register_blueprint(battle_bp)
 app.register_blueprint(tournament_bp)

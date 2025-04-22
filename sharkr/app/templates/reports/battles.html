@@ -1,0 +1,44 @@
+<div class="card">
+    <div class="card-header">
+        <h2>Relatórios</h2>
+    </div>
+
+    <div class="card-body">
+        {% if entries %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Torneio</th>
+                            <th>Startup A</th>
+                            <th>Startup B</th>
+                            <th>Round</th>
+                            <th>Vencedor</th>
+                            <th>Pontos A</th>
+                            <th>Pontos B</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.tournament_name }}</td>
+                            <td>{{ startups[entry.startup_a].name }}</td>
+                            <td>{{ startups[entry.startup_b].name }}</td>
+                            <td>{{ entry.round_number }}</td>
+                            <td>
+                                {% if entry.winner %}
+                                {{ startups[entry.winner].name }}
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </td>
+                            <td>{{ entry.startup_a_points }}</td>
+                            <td>{{ entry.startup_b_points }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted">Nenhuma batalha registrada ainda.</p>
+        {% endif %}
+    </div>
+</div>

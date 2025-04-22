@@ -1,5 +1,5 @@
 <!-- route: /startups -->
-{% extends 'startups/startups_base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Startups | sharkr {% endblock %}
 
@@ -52,7 +52,11 @@
             <p class="text-muted">Nenhuma startup registrada ainda.</p>
         {% endif %}
 
+        <!--    Registrar nova startup  -->
         <a href="{{ url_for('startup.create') }}" class="btn btn-primary mt-2">Cadastrar Nova Startup</a>
+
+        <!--    Usar as startups pré-definidas como seed -->
+        <a href="{{ url_for('startup.seed') }}" class="btn btn-primary mt-2">Usar Startups Pré-definidas</a>
     </div>
 </div>
 

@@ -1,7 +1,6 @@
 <!--    sharkr/app/templates/battles/history.html 
         Histórico de batalhas
 -->
-
 {% extends 'base.html' %}
 
 {% block title %}Histórico de Batalhas | sharkr {% endblock %}
@@ -12,8 +11,7 @@
         <h2>Histórico de Batalhas</h2>
     </div>
 
-    <!--    Histórico vazio: Nenhuma batalha registrada -->
-    {% if not battles %}
+    {% if not data %}
         <div class="card-body">
             <p class="lead">Nenhuma batalha registrada.</p>
         </div>
@@ -23,35 +21,25 @@
                 <thead>
                     <tr>
                         <th>Torneio</th>
-                        <th>Round</th>
                         <th>Startup A</th>
                         <th>Startup B</th>
-                        <th>Resultado</th>
+                        <th>Status</th>
                         <th>Detalhes</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for battle in battles %}
-                        <tr>
-                            <td>{{ battle.tournament.name }}</td>
-                            <td>{{ battle.round_number }}</td>
-                            <td>{{ startups[battle.startup_a_id].name }}</td>
-                            <td>{{ startups[battle.startup_b_id].name }}</td>
-                            <td>
-                                {% if battle.winner_id == battle.startup_a_id %}
-                                    {{ startups[battle.startup_a_id].name }}
-                                {% else %}
-                                    {{ startups[battle.startup_b_id].name }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('battle.entry', id=battle.id) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-plus"></i>
-                                </a>
-                            </td>
-                            
-
-                        </tr>
+                    {% for d in data %}
+                    <tr>
+                        <td>{{ d[0].name }}</td>
+                        <td>{{ d[1].name }}</td>
+                        <td>{{ d[2].name }}</td>
+                        <td>{{ d[3].status }}</td>
+                        <td>
+                            <a href="{{ url_for('battle.entry', id=d[3].id)}}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -59,3 +47,4 @@
     {% endif %}
 </div>
 {% endblock %}
+

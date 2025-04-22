@@ -1,0 +1,197 @@
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --success-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --light-bg: #f8f9fa;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --hover-bg: #f1f5f9;
+  }
+  
+  body {
+    background-color: #f5f7fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .navbar {
+    background-color: var(--secondary-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar-brand {
+    font-weight: 700;
+    color: white;
+  }
+  
+  .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+  
+  .nav-link:hover {
+    color: white !important;
+  }
+  
+  .container {
+    max-width: 1200px;
+    padding: 2rem 1rem;
+  }
+  
+  .card {
+    border-radius: 0.5rem;
+    box-shadow: var(--card-shadow);
+    border: none;
+    margin-bottom: 2rem;
+  }
+  
+  .card-header {
+    background-color: var(--secondary-color);
+    color: white;
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+    padding: 1rem 1.5rem;
+  }
+  
+  .card-header h2 {
+    margin-bottom: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .list-group-item {
+    border-left: none;
+    border-right: none;
+    border-radius: 0 !important;
+    padding: 1rem 1.25rem;
+    transition: background-color 0.2s;
+  }
+  
+  .list-group-item:first-child {
+    border-top: none;
+  }
+  
+  .list-group-item:last-child {
+    border-bottom: none;
+  }
+  
+  .list-group-item:hover {
+    background-color: var(--hover-bg);
+  }
+  
+  .startup-link {
+    font-weight: 500;
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: color 0.2s;
+    font-size: 1.1rem;
+  }
+  
+  .startup-link:hover {
+    color: var(--primary-color);
+  }
+  
+  .startup-points {
+    font-weight: 600;
+    background-color: var(--secondary-color);
+    padding: 0.35rem 0.75rem;
+    border-radius: 2rem;
+  }
+  
+  .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+  
+  .btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+  }
+  
+  .btn-danger {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+  }
+  
+  .btn-danger:hover {
+    background-color: #c0392b;
+    border-color: #c0392b;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #adb5bd;
+  }
+  
+  .create-startup-btn {
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+  }
+  
+  @media (max-width: 768px) {
+    .list-group-item {
+      flex-direction: column;
+      align-items: flex-start !important;
+    }
+    
+    .startup-points {
+      margin: 0.5rem 0;
+    }
+    
+    .action-buttons {
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    
+    .action-buttons .btn {
+      flex: 1;
+    }
+
+
+    /** better buttons */
+
+    /** rounding **/
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1.25rem;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2980b9;
+      border-color: #2980b9;
+    }
+    
+    .btn-danger {
+      background-color: var(--danger-color);
+      border-color: var(--danger-color);
+    }
+    
+    .btn-danger:hover {
+      background-color: #c0392b;
+      border-color: #c0392b;
+    }
+
+    .create-startup-btn {
+      padding: 0.5rem 1.25rem;
+      font-weight: 500;
+    }
+  }

@@ -9,6 +9,7 @@ from app.extensions     import db
 from app.models.models  import Startup, Event
 from app.forms          import StartupForm
 
+
 #   Definição do blueprint para o módulo de STARTUPS
 startup_bp = Blueprint('startup', __name__, url_prefix='/startups')
 
@@ -48,6 +49,37 @@ def create():
         flash('Startup criada com sucesso!', 'success');
         return redirect(url_for('startup.index'));
 
+
+STARTUPS_SEED : list[tuple[str, str, int]] = [
+    ('MindBloom', "Cultivando bem-estar mental para todos", 2015),
+    ('NutriCraft', "Alimentando o amanhã, hoje", 2017),
+    ("link-verse", "Conectando realidades, transformando interações", 2023),
+    ("StellarForge", "Construindo o futuro no espaço", 2022),
+    ("TechTrove", "Explorando o universo tecnológico", 2020),
+    ("CyberCrest", "Navegando o mundo digital", 2019),
+    ("SpaceGarden", "Plantando flores no espaco", 2018),
+    ("SkillSphere", "Aprenda. Conquiste. Transforme", 2021),
+    ("Vital Stream", "Sauúde personalizada na palma da sua mão", 2020),
+    ("Ecopulse", "Energia verde, vida sustentável", 2019),
+    ("NexaMind", "Inteligência artificial para um futuro sem fronteiras", 2024),
+    ("NextVision", "Visão para o futuro", 2022),
+    ("Overworld Corp.", "Segurança sem limites", 2012),
+    ("SkillTree", "Aprendizagem para o amanhã", 2017),
+    ("Unicorn Labs", "Inovação para o futuro", 2023),
+    ("CyberEdge", "Conectando o mundo virtual", 2020),
+    ("JusticeTech", "Justiça digital para todos", 2022),
+];
+
+#   Insere 16 startups pré-definidas para testagem
+@startup_bp.route('/seed')
+def seed():
+    for startup in STARTUPS_SEED:
+        #   Insira no banco de dados as startups pré-definidas uma única vez (sem duplicatas)
+        if Startup.query.filter_by(name=startup[0]).first() is None:
+            startup = Startup(name=startup[0], slogan=startup[1], year=startup[2])
+            db.session.add(startup);
+            db.session.commit();
+    return redirect(url_for('startup.index'));
 
 #   Mostrar uma startup
 @startup_bp.route('/<int:id>')

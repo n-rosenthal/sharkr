@@ -7,10 +7,121 @@
 {% block title %}Relatórios | sharkr {% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2>Relatórios</h2>
+    <!--    Lista de Startups ordenadas por pontuação -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Pontuação das Startups</h2>
+        </div>        
+        {% if startups %}
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Startup</th>
+                        <th>Pontuação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for startup in startups %}
+                    <tr>
+                        <td>{{ startup.name }}</td>
+                        <td>{{ startup.get_points() }} pontos</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="card-body">
+                <p class="text-muted">Nenhuma startup registrada ainda.</p>
+            </div>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <ul class="list-group">
-            <li class="list-group-item"><a href="{{ url_for('report.index') }}">Relatório de Batalhas</a></li>
+
+
+    <!--    Histórico de Batalhas -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Relatórios</h2>
+        </div>
+    
+        <div class="card-body">
+            {% if entries %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Torneio</th>
+                                <th>Startup A</th>
+                                <th>Startup B</th>
+                                <th>Round</th>
+                                <th>Vencedor</th>
+                                <th>Pontos A</th>
+                                <th>Pontos B</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries %}
+                            <tr>
+                                <td>{{ entry.tournament_name }}</td>
+                                <td>{{ startups[entry.startup_a].name }}</td>
+                                <td>{{ startups[entry.startup_b].name }}</td>
+                                <td>{{ entry.round_number }}</td>
+                                <td>
+                                    {% if entry.winner %}
+                                    {{ startups[entry.winner].name }}
+                                    {% else %}
+                                    N/A
+                                    {% endif %}
+                                </td>
+                                <td>{{ entry.startup_a_points }}</td>
+                                <td>{{ entry.startup_b_points }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">Nenhuma batalha registrada ainda.</p>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!--    Contagem de Eventos por Startup -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Eventos Registrados</h2>
+        </div>
+        <div class="card-body">
+            {% if event_count %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Startup</th>
+                            <th>Pitch Convincente</th>
+                            <th>Produto com Bugs</th>
+                            <th>Boa Tração de Usuários</th>
+                            <th>Investidor Irritado</th>
+                            <th>Fake News no Pitch</th>
+                        </tr>
+                    </thead>
+    
+                    <tbody>
+                        {% for event in event_count %}
+                        <tr>
+                            <td>{{ event[0] }}</td>
+                            <td>{{ event[1] }}</td>
+                            <td>{{ event[2] }}</td>
+                            <td>{{ event[3] }}</td>
+                            <td>{{ event[4] }}</td>
+                            <td>{{ event[5] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted">Nenhum evento registrado ainda.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+

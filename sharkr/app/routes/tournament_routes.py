@@ -14,25 +14,28 @@ def index():
     battles: Batalhas do torneio em andamento
     tournament_winner: Vencedor do torneio
     """
-    #   Torneio terminado: mostrar o vencedor e as batalhas
     try:
-        tournament = db.session.query(Tournament).filter(Tournament.status == 'completed').first();
+        tournament = db.session.query(Tournament).filter(Tournament.status.in_(['completed', 'in_progress'])).first()
+
         if tournament:
-            return render_template('tournament/index.html', current_tournament=tournament, battles=tournament.battles, tournament_winner=tournament.winner);
+            if tournament.status == 'completed':
+                return render_template('tournament/index.html', 
+                                       current_tournament=tournament, 
+                                       tournament_winner=tournament.winner, 
+                                       battles=tournament.battles)
+            
+            if tournament.status == 'in_progress':
+                if tournament:
+                    with app.app_context():
+                        tournament.next_round(tournament.round_winners())
+                    return render_template('tournament/index.html', current_tournament=tournament, battles=tournament.battles);
+                else:
+                    return render_template('tournament/index.html');
+            
     except Exception as e:
         flash(f'Erro ao buscar torneio: {e}', 'danger')
     
-    #   Torneio em andamento: mostrar apenas as batalhas
-    try:
-        tournament = db.session.query(Tournament).filter(Tournament.status == 'in_progress').first();
-        if tournament:
-            with app.app_context():
-                tournament.next_round();
-            return render_template('tournament/index.html', current_tournament=tournament, battles=tournament.battles);
-    except Exception as e:
-        flash(f'Erro ao buscar torneio: {e}', 'danger')
-    
-    return render_template('tournament/index.html');
+    return render_template('tournament/index.html')
 @tournament_bp.route('/create', methods=['GET'])
 def create():
     """
@@ -51,6 +54,10 @@ def create_tournament():
         if len(startups) not in [4, 6, 8]:
             flash('Só é possível realizar torneios com 4, 6 ou 8 startups.', 'danger')
             return redirect(url_for('tournament.create'));
+        
+        #   Se já existe um torneio anterior, exclui-o
+        db.session.query(Tournament).filter(Tournament.status == 'in_progress').delete();
+        db.session.commit();
         
         tournament = Tournament(startups=startups)
         db.session.add(tournament);
@@ -91,34 +98,22 @@ def add_startups():
         flash(f'Erro ao adicionar startups ao torneio: {e}', 'danger')
         return redirect(url_for('tournament.index'))
 
-@tournament_bp.route('/delete_all_battles', methods=['POST'])
-def delete_all_battles():
+@tournament_bp.route('/reset', methods=['POST'])
+def reset():
     try:
-        #   Deleta todas as batalhas
-        try:
-            battles = Battle.query.all()
-            for battle in battles:
-                db.session.delete(battle)
-        except Exception as e:
-            flash(f"Não há batalhas para deletar: {e}", "danger")
+        #   Delete todas as batalhas associadas ao torneio
+        tournament = db.session.query(Tournament).first();
+        for battle in tournament.battles:
+            db.session.delete(battle);
         
-        #   Deleta o torneio
-        try:
-            db.session.delete(Tournament.query.first())
-        except Exception as e:
-            flash(f"Erro ao deletar o torneio: {e}", "danger")
-            
-        #   Deleta os eventos
-        try:
-            db.session.query(Event).delete()
-        except Exception as e:
-            flash(f"Erro ao deletar os eventos: {e}", "danger")
-            
-        db.session.commit()
-        flash("Batalhas deletadas com sucesso!", "success")
+        #   Delete o torneio
+        db.session.delete(tournament);
+        db.session.commit();
+        
+        flash('Torneio resetado com sucesso!', 'success')
         return redirect(url_for('tournament.index'))
     except Exception as e:
-        flash(f"Erro ao deletar as batalhas: {e}", "danger")
+        flash(f'Erro ao resetar torneio: {e}', 'danger')
         return redirect(url_for('tournament.index'))
 
 from app.routes.battle_routes import run_battle
@@ -144,62 +139,12 @@ def next_round():
             flash("Todas as batalhas deste round ainda não foram concluidas!", "danger");
             return redirect(url_for('tournament.index'));
         
-        #   Extração do torneio
-        tournament = db.session.query(Tournament).first();
-        
-        #   Próximo round
-        tournament.current_round += 1;
-        db.session.commit();
-        
-        #   Extrair batalhas da última rodada
-        #   SELECT winner_id FROM battle WHERE round = self.current_round;
-        round = tournament.current_round - 1;
-        winners = db.session.query(Battle.winner_id).filter(Battle.round_number == round).all();
-        
-        
-        #   Caso 6 jogadores iniciais:  3 batalhas no round 1, 1 batalha no round 2, 1 batalha no round 3.
-        #                               só é um problema no round 3
-        if tournament.current_round == 3 and len(winners) == 1 and tournament.is_completed() == False:
-            round_1_winners_ids = db.session.query(Battle.winner_id).filter(Battle.round_number == 1).all();            round_2_winners_ids = winners;
-            
-            #   Extrai as duas startups que disputaram o round 2
-            r2_a = db.session.query(Battle.startup_a_id).filter(Battle.round_number == 2).all();
-            r2_b = db.session.query(Battle.startup_b_id).filter(Battle.round_number == 2).all();
-            
-            #   Seleciona (1) a startup que venceu o round 1 mas não jogou o 2, e (2) a startup que venceu o round 2
-            r3_a = [x[0] for x in round_1_winners_ids if x[0] not in [y[0] for y in r2_a] and x[0] not in [y[0] for y in r2_b]][0];
-            r3_b = winners[0][0];
-            
-            #   Busca as startups apontadas por estes ids
-            st_a = Startup.query.filter(Startup.id == r3_a).first();
-            st_b = Startup.query.filter(Startup.id == r3_b).first();
-            
-            #   Monta a última batalha
-            battle = Battle(tournament.id, tournament.current_round, st_a.id, st_b.id, "not_started");
-            db.session.add(battle);
+        with app.app_context():
+            tournament : Tournament = db.session.query(Tournament).first();
+            startups = tournament.round_winners();
+            tournament.next_round(startups);
             db.session.commit();
             return redirect(url_for('tournament.index'));
-        
-        
-        #   Geração de batalhas para o próximo round
-        if len(winners) != 1:
-            flash("Gerando batalhas do próximo round...", "success");
-            startups: list[Startup] = [];
-            
-            for winner in winners:
-                startups.append(Startup.query.filter(Startup.id == winner.winner_id).first());
-                            
-            tournament.generate_battles(startups);
-            db.session.commit();
-            return redirect(url_for('tournament.index'));
-        #   Finaliza o torneio
-        else:
-            tournament.status = "finished";
-            db.session.commit();
-            flash("Torneio finalizado com sucesso!", "success");
-            return redirect(url_for('reports.winner', winner_id=Startup.query.filter(Startup.id == winners[0].winner_id).first().id));
-        
-        return redirect(url_for('tournament.index'));
     except Exception as e:
-        flash(f"Erro ao executar a batalha: {e}", "danger")
+        flash(f"Erro ao executar o round: {e}", "danger");
         return redirect(url_for('tournament.index'));

@@ -6,7 +6,6 @@ from app.extensions import db
 
 from flask import flash, redirect, render_template, url_for, current_app
 from sqlalchemy import and_, or_, func as sql_func
-from app.models.models import Startup, Battle, Event, Tournament
 
 
 class BattleEntry(db.Model):
@@ -14,7 +13,7 @@ class BattleEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     startup_a = db.Column(db.Integer, db.ForeignKey('startup.id'), nullable=False)
     startup_b = db.Column(db.Integer, db.ForeignKey('startup.id'), nullable=False)
-    tournament_id = db.Column(db.Integer, db.ForeignKey('tournament.id'), nullable=False)
+    tournament_name = db.Column(db.String(255), nullable=False);
     round_number = db.Column(db.Integer, nullable=False)
     winner = db.Column(db.Integer, db.ForeignKey('startup.id'), nullable=True)
     startup_a_points = db.Column(db.Integer, nullable=False)
@@ -22,10 +21,10 @@ class BattleEntry(db.Model):
     startup_a_events = db.Column(db.JSON, nullable=False, default=list)
     startup_b_events = db.Column(db.JSON, nullable=False, default=list)
     
-    def __init__(self, startup_a, startup_b, tournament_id, round_number, winner, startup_a_points, startup_b_points, startup_a_events, startup_b_events):
+    def __init__(self, startup_a, startup_b, tournament_name, round_number, winner, startup_a_points, startup_b_points, startup_a_events, startup_b_events):
         self.startup_a = startup_a
         self.startup_b = startup_b
-        self.tournament_id = tournament_id
+        self.tournament_name = tournament_name
         self.round_number = round_number
         self.winner = winner
         self.startup_a_points = startup_a_points
@@ -35,4 +34,10 @@ class BattleEntry(db.Model):
         
         db.session.add(self)
         db.session.commit();
-        return; 
+        return;
+    
+    def __repr__(self):
+        return '<BattleEntry %r>' % self.id
+    
+    def render(self):
+        return render_template('battles/entry.html', entry=self);
