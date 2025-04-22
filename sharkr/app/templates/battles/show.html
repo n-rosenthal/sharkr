@@ -1,0 +1,20 @@
+<!--    battle.show
+        Card mostrando os dados de uma batalha
+        Nome e pontuação dos participantes
+-->
+
+{% extends 'base.html' %}
+
+{% block title %} {{ battle.name }} | sharkr {% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Batalha {{ battle.id }} (Torneio {{ tournament.id }}, round {{ battle.round_number }})</h2>
+    </div>
+    <div class="card-body">
+        <p>Startup A: {{ battle.startup_a.name }} ({{ battle.startup_a.score }} pontos)</p>
+        <p>Startup B: {{ battle.startup_b.name }} ({{ battle.startup_b.score }} pontos)</p>
+    </div>
+</div>
+{% endblock %}

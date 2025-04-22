@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %} {{ startup.name }} | sharkr {% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <h2>{{ startup.name }}</h2>
+        <div>
+            <a href="{{ url_for('startup.update', id=startup.id) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+            <a href="{{ url_for('startup.index') }}" class="btn btn-sm btn-outline-secondary ms-2">Voltar</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <p>{{ startup.slogan }}</p>
+        <p>Fundada em: {{ startup.year }}</p>
+    </div>
+</div>
+{% endblock %}

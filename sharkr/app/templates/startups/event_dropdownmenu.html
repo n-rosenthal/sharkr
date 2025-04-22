@@ -1,0 +1,17 @@
+<!--    Componente para um menu dropdown de eventos
+        Selecionar uma opção de um evento (para determinada startup, 
+        estando logado com determinado usuário), acarreta a criação de um novo evento
+        na base de dados. -->
+
+<div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Novo evento
+    </button>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <a class="dropdown-item" href="{{ url_for('startup.create_event', startup_id=startup.id, event_type='pitch_convincente') }}">Pitch convincente</a>
+        <a class="dropdown-item" href="{{ url_for('startup.create_event', startup_id=startup.id, event_type='produto_com_bugs') }}">Produto com bugs</a>
+        <a class="dropdown-item" href="{{ url_for('startup.create_event', startup_id=startup.id, event_type='boa_tracao_usuarios') }}">Boa tração de usuários</a>
+        <a class="dropdown-item" href="{{ url_for('startup.create_event', startup_id=startup.id, event_type='investidor_irritado') }}">Investidor irritado</a>
+        <a class="dropdown-item" href="{{ url_for('startup.create_event', startup_id=startup.id, event_type='pitch_fake_news') }}">Pitch fake news</a>
+    </div>
+</div>

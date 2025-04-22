@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Vencedor do Torneio | sharkr {% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center">
+    <div class='winner-container'>
+        <div class='startup-card'>
+            <div class='startup-header'>
+                <h3>{{ winner.name }}</h3>
+            </div>
+            <div class='startup-body'>
+                <div class='startup-score'>{{ winner.get_points() }}</div>
+                <div class='startup-score-label'>pontos</div>
+            </div>
+
+            <div class='winner-badge'>Vencedor</div>
+
+            <div class='startup-slogan'>{{ winner.slogan }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

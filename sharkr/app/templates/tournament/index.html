@@ -1,0 +1,87 @@
+<!--    /templates/tournament/index.html 
+        Índice do torneio
+-->
+
+{% extends 'base.html' %}
+
+{% block title %}Torneios | sharkr {% endblock %}
+
+{% block content %}
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-trophy me-2"></i>Torneio de Startups</h2>
+
+        <!--  Informações sobre o torneio atual -->
+        {% if current_tournament %}
+          <span class="badge bg-info text-dark">
+            Round Atual: {{ current_tournament.current_round }}
+          </span>
+        {% endif %}
+
+        <!-- Botões de ações do torneio -->
+        <form method="GET" action="{{ url_for('tournament.create') }}" class="d-inline">
+            <button type="submit" class="btn {% if current_tournament %}btn-secondary{% else %}btn-primary{% endif %}" {% if current_tournament %}disabled{% endif %}>
+                Novo Torneio
+            </button>
+        </form>
+
+        <form method="POST" action="{{ url_for('tournament.next_round') }}" class="d-inline">
+            <button type="submit" class="btn btn-primary">Próximo Round</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('tournament.delete_all_battles') }}" class="d-inline">
+            <button type="submit" class="btn btn-primary">Resetar Torneio</button>
+        </form>
+      </div>
+
+      <!--  Exibe o vencedor, se o torneio já houver sido terminado -->
+    {% if current_tournament %}
+      {% if tournament_winner %}
+        <div class="card-body">
+          <div class="d-flex justify-content-center">
+            <div class="startup-card">
+              <div class="startup-header">
+                <h3>{{ tournament_winner.name }}</h3>
+              </div>
+              <div class="startup-body">
+                <div class="startup-score">{{ tournament_winner.get_points() }}</div>
+                <div class="startup-score-label">pontos</div>
+              </div>
+              <div class="startup-slogan">{{ tournament_winner.slogan }}</div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+
+
+      <!-- Lista de batalhas do torneio -->
+      {% if battles %}
+      <div class="card-body">
+        <ul class="list-group">
+          {% for battle in battles %}
+            <li class="list-group-item d-flex justify-content-between">
+              {{ battle.render()|safe }}
+              <p>a</p
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <div class="card-body">
+        <p class="text-muted">Nenhuma batalha no torneio ainda.</p>
+      </div>    
+    </div>
+    {% endif %}
+  <!-- Footer -->
+  <footer class="bg-dark text-white py-4 mt-5">
+    <div class="container text-center">
+      <p class="mb-0">© 2025 sharkr - Plataforma de Competição de Startups</p>
+    </div>
+  </footer>
+
+{% endblock %}
+

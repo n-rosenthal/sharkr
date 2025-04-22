@@ -1,0 +1,16 @@
+<!--    /templates/reports/index.html 
+    Índice de relatórios
+-->
+
+{% extends 'base.html' %}
+
+{% block title %}Relatórios | sharkr {% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Relatórios</h2>
+    </div>
+    <div class="card-body">
+        <ul class="list-group">
+            <li class="list-group-item"><a href="{{ url_for('report.index') }}">Relatório de Batalhas</a></li>

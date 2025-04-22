@@ -1,0 +1,14 @@
+<!-- Badge para o evento recebido por uma startup -->
+
+
+{% if event.event_type == 'pitch_convincente' %}
+    <span class="badge bg-success">Pitch convincente</span>
+{% elif event.event_type == 'produto_com_bugs' %}
+    <span class="badge bg-danger">Produto com bugs</span>
+{% elif event.event_type == 'boa_tracao_usuarios' %}
+    <span class="badge bg-success">Boa tração de usuários</span>
+{% elif event.event_type == 'investidor_irritado' %}
+    <span class="badge bg-danger">Investidor irritado</span>
+{% elif event.event_type == 'pitch_fake_news' %}
+    <span class="badge bg-danger">Pitch Fake News</span>
+{% endif %}

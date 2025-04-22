@@ -1,0 +1,296 @@
+<!--    /templates/battles/card.html 
+        Definição de um card para uma batalha entre duas startups
+-->
+
+{% block content %}
+<div class="container my-4">
+  <div class="battle-card">
+    <!-- Battle Header -->
+    <div class="battle-header mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="battle-title">
+          <i class="fas fa-trophy me-2"></i>Batalha #{{ battle.id }}
+        </h2>
+        <div class="battle-status-badge 
+                    {{ 'bg-success' if battle.status == 'completed' else 'bg-warning' }}">
+          {{ battle.status|capitalize }}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Battle Content -->
+    <div class="battle-content">
+      <!-- Startups Comparison -->
+      <div class="startups-arena mb-4">
+        <!-- Startup A -->
+        <div class="startup-competitor {{ 'winner' if battle.winner() == startup_a.name }}">
+          <div class="startup-card">
+            <div class="startup-header">
+              <h3>{{ startup_a.name }}</h3>
+            </div>
+            <div class="startup-body">
+              <div class="startup-score">{{ startup_a.get_points() }}</div>
+              <div class="startup-score-label">pontos</div>
+
+              <!--  Mostra badges para os eventos que esta startup recebeu -->
+              {% for event in events_a %}
+                {{ event.render()|safe }}
+              {% endfor %}
+
+              {% if battle.winner() == startup_a.name and battle.status == 'completed' %}
+                <div class="winner-badge">Vencedor</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <!-- VS Badge -->
+        <div class="vs-container">
+          <div class="vs-badge">VS</div>
+        </div>
+        
+        <!-- Startup B -->
+        <div class="startup-competitor {{ 'winner' if battle.winner() == startup_b.name }}">
+          <div class="startup-card">
+            <div class="startup-header">
+              <h3>{{ startup_b.name }}</h3>
+            </div>
+
+            <div class="startup-body">
+              <div class="startup-score">{{ startup_b.get_points() }}</div>
+              <div class="startup-score-label">pontos</div>
+
+              <!--  Mostra badges para os eventos que esta startup recebeu -->
+              {% for event in events_b %}
+                {{ event.render()|safe }}
+              {% endfor %}
+
+              {% if battle.winner() == startup_b.name and battle.status == 'completed' %}
+                <div class="winner-badge">Vencedor</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+
+      <div class="d-flex justify-content-between">
+        <div>
+          <button class="btn btn-secondary" type="button" id="dropdownMenuButtonA" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Novo Evento ({{ startup_a.name }})
+          </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButtonA">
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_a.id, event_type='pitch_convincente') }}">Pitch convincente</a>
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_a.id, event_type='produto_com_bugs') }}">Produto com bugs</a>
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_a.id, event_type='boa_tracao_usuarios') }}">Boa tração de usuários</a>
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_a.id, event_type='investidor_irritado') }}">Investidor irritado</a>
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_a.id, event_type='pitch_fake_news') }}">Pitch fake news</a>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-secondary" type="button" id="dropdownMenuButtonB" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Novo Evento ({{ startup_b.name }})
+          </button>
+          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButtonB">
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_b.id, event_type='pitch_convincente') }}">Pitch convincente</a>
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_b.id, event_type='produto_com_bugs') }}">Produto com bugs</a>
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_b.id, event_type='boa_tracao_usuarios') }}">Boa tração de usuários</a>
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_b.id, event_type='investidor_irritado') }}">Investidor irritado</a>
+            <a class="dropdown-item" href="{{ url_for('battle.insert_event', battle_id=battle.id, startup_id=startup_b.id, event_type='pitch_fake_news') }}">Pitch fake news</a>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Battle Result -->
+      {% if battle.status == 'completed' %}
+      <div class="battle-result mb-4">
+        <h4>Resultado da Batalha</h4>
+        <p>
+          {% if battle.winner() %}
+            A startup <strong>{{ battle.winner() }}</strong> venceu esta batalha!
+          {% else %}
+            Esta batalha terminou em empate.
+          {% endif %}
+        </p>
+        <div class="battle-metrics">
+          <div class="metric">
+            <span class="metric-label">Diferença de pontos:</span>
+            <span class="metric-value">{{ (startup_a.get_points() - startup_b.get_points())|abs }}</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Battle Actions -->
+      <div class="battle-actions text-center">
+        <!--    Iniciar batalha     -->
+        <form method="POST" action="{{ url_for('battle.run_battle', id=battle.id) }}">
+          <button type="submit" class="btn btn-lg {{ 'btn-secondary' if battle.status == 'completed' else 'btn-primary' }}" 
+                  {% if battle.status == 'completed' %} disabled {% endif %}>
+            <i class="fas fa-play me-2"></i>Iniciar Batalha
+          </button>
+        </form>
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+3i4mYb9z7f3D3w4x5x5V5V5V5V5V" crossorigin="anonymous"></script>
+
+<style>
+  .battle-card {
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .battle-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 0;
+  }
+  
+  .battle-status-badge {
+    padding: 0.5rem 1rem;
+    color: white;
+    border-radius: 2rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+  }
+  
+  .startups-arena {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .startup-competitor {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .startup-competitor.winner {
+    background-color: rgba(46, 204, 113, 0.1);
+    border: 2px solid #2ecc71;
+  }
+  
+  .startup-card {
+    padding: 1.5rem;
+    text-align: center;
+  }
+  
+  .startup-header h3 {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+  }
+  
+  .startup-category {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  
+  .startup-score {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #3498db;
+  }
+  
+  .startup-score-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .winner-badge {
+    display: inline-block;
+    background-color: #f1c40f;
+    color: #2c3e50;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    margin-top: 1rem;
+  }
+  
+  .vs-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 1rem;
+  }
+  
+  .vs-badge {
+    background-color: #34495e;
+    color: white;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+  
+  .battle-result {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .battle-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .metric {
+    background-color: #e9ecef;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .metric-label {
+    font-weight: 500;
+    color: #6c757d;
+    margin-right: 0.5rem;
+  }
+  
+  .metric-value {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+  
+  .battle-actions {
+    margin-top: 2rem;
+  }
+  
+  @media (max-width: 768px) {
+    .startups-arena {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .vs-container {
+      margin: 1rem 0;
+    }
+  };
+</style>
+
+
+{% endblock %}

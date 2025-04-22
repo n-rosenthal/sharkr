@@ -1,0 +1,32 @@
+<!--    /templates/tournament/create.html 
+        Criação do torneio
+-->
+
+{% extends 'base.html' %}
+
+{% block title %}Criação de Torneio | sharkr {% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Criar Torneio</h2>
+    </div>
+    
+    <!--    Lista de startups para selecionar ao torneio -->
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('tournament.create', startups=startups) }}">
+            <div class="mb-3">
+                <label for="startups" class="form-label">Selecionar Startups</label>
+                <select multiple class="form-control" id="startups" name="startups[]">
+                    {% for startup in startups %}
+                        <option value="{{ startup.id }}">{{ startup.name }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">Segure Ctrl (ou Command) para selecionar múltiplas startups.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Criar Torneio</button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

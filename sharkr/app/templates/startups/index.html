@@ -1,0 +1,59 @@
+<!-- route: /startups -->
+{% extends 'startups/startups_base.html' %}
+
+{% block title %}Startups | sharkr {% endblock %}
+
+{% block content %}
+
+<!--    Lista de startups registradas -->
+<div class="container">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-rocket me-2"></i>Startups Registradas</h2>
+        </div>
+
+        <div class="card-body">
+            {% if startups %}
+            <!-- Lista de startups -->
+            <div class="startups-list mb-4">
+                <ul class="list-group">
+
+                    {% for startup in startups %}
+                    <!-- Startup item-->
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <!-- Link para a página de detalhes da startup e nome -->
+                        <a href="{{ url_for('startup.show', id=startup.id) }}" class="text-decoration-none me-auto">{{ startup.name }}</a>
+
+                        <!-- Pontuação da startup -->
+                        <div class="badge bg-secondary me-2">
+                            {{ startup.get_points() }} pontos
+                        </div>
+
+                        <div class="btn-group" role="group" aria-label="actions">
+                            <!--    Botão editar -->
+                            <a href="{{ url_for('startup.update', id=startup.id) }}"
+                               class="btn btn-primary btn-sm me-2"
+                               style="border-radius: 0.5rem"> Editar
+                            </a>
+                            <!--    Botão excluir -->
+                            <form method="POST"
+                                action="{{ url_for('startup.delete', id=startup.id) }}"
+                                style="display: inline; ">
+                                <button type="submit" 
+                                    class="btn btn-danger btn-sm"
+                                    style="border-radius: 0.5rem">Excluir</button>
+                            </form>
+                        </div>
+                    </li>   
+
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">Nenhuma startup registrada ainda.</p>
+        {% endif %}
+
+        <a href="{{ url_for('startup.create') }}" class="btn btn-primary mt-2">Cadastrar Nova Startup</a>
+    </div>
+</div>
+
+{% endblock %}
