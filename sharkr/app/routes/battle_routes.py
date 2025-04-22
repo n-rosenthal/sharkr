@@ -4,15 +4,22 @@ from app.models.models import Battle, Startup, Event
 
 import random
 
+#   Rotas do módulo de BATALHAS
 battle_bp = Blueprint('battle', __name__, url_prefix='/battles')
 
 @battle_bp.route('/')
 def index():
     """
-    Página de listagem de batalhas
+    Histórico de batalhas
     """
-    battles = Battle.query.all()
-    return render_template('battles/index.html', battles=battles)
+    battles = Battle.query.all();
+    return render_template('battles/history.html', battles=battles, startups=Startup.query.all());
+
+#   Entry de uma batalha
+@battle_bp.route('/entry/<int:id>', methods=['GET', 'POST'])
+def entry(id: int):
+    battle = Battle.query.get_or_404(id)
+    return render_template('battles/entry.html', battle=battle);
 
 @battle_bp.route('/create/<int:tournament_id>/<int:startup_a_id>/<int:startup_b_id>', methods=['POST'])
 def create(tournament_id, startup_a_id, startup_b_id):
@@ -49,3 +56,9 @@ def insert_event(battle_id, startup_id, event_type):
         db.session.commit()
     
     return redirect(url_for('tournament.index', id=battle_id))
+
+#   Show
+@battle_bp.route('/show/<int:id>')
+def show(id: int):
+    battle = Battle.query.get_or_404(id)
+    return render_template('battles/show.html', battle=battle);

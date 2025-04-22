@@ -1,0 +1,19 @@
+<!--    sharkr/app/templates/battles/entry.html
+        Informações sobre uma batalha.
+-->
+
+{% extends 'base.html' %}
+
+{% block title %}Batalha {{ battle.id }} | sharkr {% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Batalha {{ battle.id }} (Torneio {{ tournament.id }}, round {{ battle.round_number }})</h2>
+    </div>
+    <div class="card-body">
+        <p>Startup A: {{ battle.startup_a.name }} ({{ battle.startup_a.score }} pontos)</p>
+        <p>Startup B: {{ battle.startup_b.name }} ({{ battle.startup_b.score }} pontos)</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+<!--    sharkr/app/templates/battles/history.html 
+        Histórico de batalhas
+-->
+
+{% extends 'base.html' %}
+
+{% block title %}Histórico de Batalhas | sharkr {% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Histórico de Batalhas</h2>
+    </div>
+
+    <!--    Histórico vazio: Nenhuma batalha registrada -->
+    {% if not battles %}
+        <div class="card-body">
+            <p class="lead">Nenhuma batalha registrada.</p>
+        </div>
+    {% else %}
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Torneio</th>
+                        <th>Round</th>
+                        <th>Startup A</th>
+                        <th>Startup B</th>
+                        <th>Resultado</th>
+                        <th>Detalhes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for battle in battles %}
+                        <tr>
+                            <td>{{ battle.tournament.name }}</td>
+                            <td>{{ battle.round_number }}</td>
+                            <td>{{ startups[battle.startup_a_id].name }}</td>
+                            <td>{{ startups[battle.startup_b_id].name }}</td>
+                            <td>
+                                {% if battle.winner_id == battle.startup_a_id %}
+                                    {{ startups[battle.startup_a_id].name }}
+                                {% else %}
+                                    {{ startups[battle.startup_b_id].name }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('battle.entry', id=battle.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </td>
+                            
+
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
