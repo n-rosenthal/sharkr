@@ -6,11 +6,13 @@ Rotas para criação, visualização e atualização de startups
 
 from flask              import Blueprint, render_template, request, redirect, url_for, flash
 from app.extensions     import db
-from app.models.startup import Startup
+from app.models.models  import Startup, Event
 from app.forms          import StartupForm
 
+#   Definição do blueprint para o módulo de STARTUPS
 startup_bp = Blueprint('startup', __name__, url_prefix='/startups')
 
+#   Index
 @startup_bp.route('/')
 def index():
     """
@@ -105,7 +107,6 @@ def delete(id: int):
 
 
 #   Registrar um evento a uma startup
-from app.models.startup import Event, get_value
 @startup_bp.route('/<int:startup_id>/create_event/<string:event_type>', methods=['GET', 'POST'])
 def create_event(startup_id: int, event_type: str):
     """
