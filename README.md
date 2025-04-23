@@ -35,8 +35,11 @@ Sistema web para simulação de um torneio entre startups, onde competidoras dis
 
 ```bash
 git clone https://github.com/n-rosenthal/sharkr.git
-cd startup-rush
+cd sharkr
 ```
+
+Também é possível baixar um arquivo compactado de todo este repositório.
+
 2. **Configurar ambiente virtual**
 
 ```bash
