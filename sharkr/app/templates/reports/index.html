@@ -24,8 +24,8 @@
                 <tbody>
                     {% for startup in startups %}
                     <tr>
-                        <td>{{ startup.name }}</td>
-                        <td>{{ startup.get_points() }} pontos</td>
+                        <td>{{ startup[0] }}</td>
+                        <td>{{ startup[1] }} pontos</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -42,7 +42,7 @@
     <!--    Histórico de Batalhas -->
     <div class="card">
         <div class="card-header">
-            <h2>Relatórios</h2>
+            <h2>Histórico de Batalhas</h2>
         </div>
     
         <div class="card-body">
@@ -62,19 +62,13 @@
                         <tbody>
                             {% for entry in entries %}
                             <tr>
-                                <td>{{ entry.tournament_name }}</td>
-                                <td>{{ startups[entry.startup_a].name }}</td>
-                                <td>{{ startups[entry.startup_b].name }}</td>
-                                <td>{{ entry.round_number }}</td>
-                                <td>
-                                    {% if entry.winner %}
-                                    {{ startups[entry.winner].name }}
-                                    {% else %}
-                                    N/A
-                                    {% endif %}
-                                </td>
-                                <td>{{ entry.startup_a_points }}</td>
-                                <td>{{ entry.startup_b_points }}</td>
+                                <td>{{ entry[0] }}</td>
+                                <td>{{ entry[1] }}</td>
+                                <td>{{ entry[2] }}</td>
+                                <td>{{ entry[3] }}</td>
+                                <td>{{ entry[4] }}</td>
+                                <td>{{ entry[5] }}</td>
+                                <td>{{ entry[6] }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

@@ -1,11 +1,9 @@
-import random;
-from itertools import combinations;
-from datetime import datetime;
-
+""" sharkr/app/models/history.py
+    Implementação da classe `BattleEntry`, registro de batalhas que ocorreram no torneio atual ou em torneios anteriores.
+"""
 from app.extensions import db
-
-from flask import flash, redirect, render_template, url_for, current_app
-from sqlalchemy import and_, or_, func as sql_func
+from flask import render_template
+from sqlalchemy import func as sql_func
 
 
 class BattleEntry(db.Model):

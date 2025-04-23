@@ -2,6 +2,8 @@
         Definição de um card para uma batalha entre duas startups
 -->
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/card.css') }}">
+
 {% block content %}
 <div class="container my-4">
   <div class="battle-card">
@@ -18,9 +20,8 @@
       </div>
     </div>
     
-    <!-- Battle Content -->
+    <!-- Conteúdo de uma batalha -->
     <div class="battle-content">
-      <!-- Startups Comparison -->
       <div class="startups-arena mb-4">
         <!-- Startup A -->
         <div class="startup-competitor {{ 'winner' if battle.winner() == startup_a.name }}">
@@ -73,7 +74,7 @@
         </div>
       </div>
       
-
+      <!--  Dropdown menus para registro de eventos -->
       <div class="d-flex justify-content-between">
         <div>
           <button class="btn btn-secondary" type="button" id="dropdownMenuButtonA" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -131,165 +132,16 @@
             <i class="fas fa-play me-2"></i>Iniciar Batalha
           </button>
         </form>
-        
-
       </div>
     </div>
   </div>
 </div>
 
 
-
+<!--  Animações sutis para card da batalha -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+3i4mYb9z7f3D3w4x5x5V5V5V5V5V" crossorigin="anonymous"></script>
 
 <style>
-  .battle-card {
-    background-color: #fff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-    margin-bottom: 2rem;
-  }
-  
-  .battle-title {
-    color: #2c3e50;
-    font-weight: 600;
-    margin-bottom: 0;
-  }
-  
-  .battle-status-badge {
-    padding: 0.5rem 1rem;
-    color: white;
-    border-radius: 2rem;
-    font-weight: 500;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-  }
-  
-  .startups-arena {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .startup-competitor {
-    flex: 1;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-  }
-  
-  .startup-competitor.winner {
-    background-color: rgba(46, 204, 113, 0.1);
-    border: 2px solid #2ecc71;
-  }
-  
-  .startup-card {
-    padding: 1.5rem;
-    text-align: center;
-  }
-  
-  .startup-header h3 {
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 0.25rem;
-  }
-  
-  .startup-category {
-    color: #7f8c8d;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-  }
-  
-  .startup-score {
-    font-size: 3rem;
-    font-weight: 700;
-    color: #3498db;
-  }
-  
-  .startup-score-label {
-    color: #7f8c8d;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  
-  .winner-badge {
-    display: inline-block;
-    background-color: #f1c40f;
-    color: #2c3e50;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    margin-top: 1rem;
-  }
-  
-  .vs-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 1rem;
-  }
-  
-  .vs-badge {
-    background-color: #34495e;
-    color: white;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.2rem;
-  }
-  
-  .battle-result {
-    background-color: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    margin: 2rem 0;
-  }
-  
-  .battle-metrics {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .metric {
-    background-color: #e9ecef;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .metric-label {
-    font-weight: 500;
-    color: #6c757d;
-    margin-right: 0.5rem;
-  }
-  
-  .metric-value {
-    font-weight: 600;
-    color: #2c3e50;
-  }
-  
-  .battle-actions {
-    margin-top: 2rem;
-  }
-  
-  @media (max-width: 768px) {
-    .startups-arena {
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    
-    .vs-container {
-      margin: 1rem 0;
-    }
-  };
 </style>
 
 

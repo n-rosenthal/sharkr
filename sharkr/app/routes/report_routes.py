@@ -1,5 +1,5 @@
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, current_app
 from app.extensions import db
 from app.models.models import Battle, Startup, Event, Tournament
 from app.models.history import BattleEntry
@@ -13,45 +13,59 @@ def index():
     """
     Índice de '/reports'
     """
-    #   Extrai todos os objetos `BattleEntry` do banco de dados
-    entries : list[BattleEntry] = BattleEntry.query.all()
-
-    for e in entries:
-        flash(f"Startup A: {e.startup_a} | Startup B: {e.startup_b} | Round: {e.round_number} | Winner: {e.winner} | Points A: {e.startup_a_points} | Points B: {e.startup_b_points}", "success");
+    #   Pontuação atual das startups
+    #   Constrói uma lista de tuplas (nome, pontuação atual)
+    startup_points : list[tuple[str, int]] = [];
+    for startup in Startup.query.all():
+        startup_points.append((startup.name, startup.points));
+        
+    #   Ordena a lista de startups por pontuação, desc.
+    startup_points.sort(key=lambda x: x[1], reverse=True);
     
-    #   Constrói uma lista de tuplas de inteiros (contagens de quantos eventos de cada tipo uma startup recebeu)
-    #   startup_name, "pitch convincente", "produto com bugs", "boa tracao de usuarios", "investidor irritado", "pitch fake news"
-    event_count : list[tuple[str, int, int, int, int, int]] = [];
+    #   Eventos registrados
+    event_count : list[tuple[str, int, int, int, int, int]] = []
     for startup in Startup.query.all():
         pitch_convincente = 0
         produto_com_bugs = 0
         boa_tracao_de_usuarios = 0
         investidor_irritado = 0
         pitch_fake_news = 0
-        
+
         #   Seleciona todos os eventos registrados a uma startup
-        for event in Event.query.all():
-            if event.startup_id == startup.id:
-                if event.event_type == "pitch_convincente":
-                    pitch_convincente += 1
-                elif event.event_type == "produto_com_bugs":
-                    produto_com_bugs += 1
-                elif event.event_type == "boa_tracao_usuarios":
-                    boa_tracao_de_usuarios += 1
-                elif event.event_type == "investidor_irritado":
-                    investidor_irritado += 1
-                elif event.event_type == "pitch_fake_news":
-                    pitch_fake_news += 1
-        event_count.append((startup.name, pitch_convincente, produto_com_bugs, boa_tracao_de_usuarios, investidor_irritado, pitch_fake_news));
-        
+        for event in Event.query.filter_by(startup_id=startup.id).all():
+            if event.event_type == "pitch_convincente":
+                pitch_convincente += 1
+            elif event.event_type == "produto_com_bugs":
+                produto_com_bugs += 1
+            elif event.event_type == "boa_tracao_usuarios":
+                boa_tracao_de_usuarios += 1
+            elif event.event_type == "investidor_irritado":
+                investidor_irritado += 1
+            elif event.event_type == "pitch_fake_news":
+                pitch_fake_news += 1
+
+        event_count.append((startup.name, pitch_convincente, produto_com_bugs, boa_tracao_de_usuarios, investidor_irritado, pitch_fake_news))
+
     #   Ordena a lista de tuplas de inteiros de forma decrescente
     event_count.sort(key=lambda x: x[1], reverse=True)
     
+    
+    #   Registros de batalhas
+    entries: list[tuple[str, str, int, str, int, int]] = []
+    for e in BattleEntry.query.all():
+        startup_a_name = Startup.query.get(e.startup_a).name
+        startup_b_name = Startup.query.get(e.startup_b).name
+        winner_name = Startup.query.get(e.winner).name if e.winner else "N/A"
+        #   Atualiza o nome do torneio na BattleEntry
+        #   Isto deveria ser feito em outro lugar.
+        entries.append(("Torneio de Startups (#0001)", startup_a_name, startup_b_name, e.round_number, winner_name, e.startup_a_points, e.startup_b_points))
+
+    
     return render_template('reports/index.html',
                            entries=entries,
-                           startups=sorted(Startup.query.all(), key=lambda x: x.get_points(), reverse=True),
+                           startups=startup_points,
                            tournaments=[x.name for x in Tournament.query.all()],
-                           event_count=event_count);
+                           event_count=event_count,);
 
 #   Relatório com o vencedor do torneio
 @report_bp.route('/winner/<int:winner_id>', methods=['GET'])

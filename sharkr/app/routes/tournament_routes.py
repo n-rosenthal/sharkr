@@ -8,6 +8,7 @@ from app import app
 
 tournament_bp = Blueprint('tournament', __name__, url_prefix='/tournament')
 
+#   Raiz do módulo de torneios
 @tournament_bp.route('/', methods=['GET'])
 def index():
     """
@@ -56,6 +57,10 @@ def index():
                     #   Busca os eventos das batalhas do torneio
                     events = Event.query.filter(Event.battle_id.in_([b.id for b in battles])).all();
                     
+                    #   Se todas as batalhas do round já houverem sido completas, então tenta avançar de round
+                    if all([b.status != "not_started" for b in battles]):
+                        return redirect(url_for('tournament.next_round'))
+                    
                     return render_template('tournament/index.html',
                                         current_tournament=current_tournament,
                                         battles=battles,
@@ -72,6 +77,8 @@ def index():
         return render_template('tournament/index.html');
     return render_template('tournament/index.html')
 
+
+#   Criação de um novo torneio, método GET
 @tournament_bp.route('/create', methods=['GET'])
 def create():
     """
@@ -79,6 +86,8 @@ def create():
     """
     return render_template('tournament/create.html', startups=Startup.query.all());
 
+
+#   Criação de um novo torneio
 @tournament_bp.route('/create', methods=['POST'])
 def create_tournament():
     try:
@@ -139,6 +148,7 @@ def add_startups():
         flash(f'Erro ao adicionar startups ao torneio: {e}', 'danger')
         return redirect(url_for('tournament.index'))
 
+#   Desenvolvimento, não usado na release
 @tournament_bp.route('/reset', methods=['POST'])
 def reset():
     try:
@@ -160,6 +170,7 @@ def reset():
 from app.routes.battle_routes import run_battle
 from flask import Response
 
+#   Desenvolvimento, não usado na release
 @tournament_bp.route('/run_all_battles', methods=['POST'])
 def run_all_battles() -> Response:
     for battle in Battle.query.all():
@@ -172,7 +183,8 @@ def run_all_battles() -> Response:
     flash("Batalhas executadas com sucesso!", "success");
     return redirect(url_for('tournament.index'));
 
-@tournament_bp.route('/next_round', methods=['POST'])
+#   Próximo round
+@tournament_bp.route('/next_round', methods=['POST', 'GET'])
 def next_round():
     try:
         tournament = db.session.query(Tournament).first()

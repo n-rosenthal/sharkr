@@ -1,3 +1,13 @@
+""" sharkr/app/routes/battle_routes.py
+    Rotas para as páginas relacionadas às batalhas
+    
+    /battles/
+            /entry/<id>
+            /create/...
+            /run_battle/...
+            /insert_event/...
+            /show/...
+"""
 from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, current_app
 from app.extensions import db
 from app.models.models import Battle, Startup, Event, Tournament

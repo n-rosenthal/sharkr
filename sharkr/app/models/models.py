@@ -1,7 +1,5 @@
 import random;
 import json;
-from itertools import combinations;
-from datetime import datetime;
 from typing import Optional
 
 from app.extensions import db
@@ -43,7 +41,7 @@ class Startup(db.Model):
     year            = db.Column(db.Integer, nullable=False);
     points          = db.Column(db.Integer, nullable=False);
     
-    def __init__(self, name, slogan, year):
+    def __init__(self, name: str, slogan: str, year: int) -> None:
         """
         Construtor para objetos `Startup`
         
@@ -82,11 +80,9 @@ class Startup(db.Model):
         battle_points: int = 0
         try:
             b = db.session.query(Battle).filter(Battle.winner_id == self.id).count();
+            battle_points = b * 30;
         except:
-            b = 0;
-            
-        if isinstance(b, int): battle_points = 30*b;
-        
+            pass;
         
         points += battle_points
         
@@ -98,7 +94,7 @@ class Startup(db.Model):
                 event_points += event.get_value();
         except:
             e = 0;
-            
+        
         points += event_points;
         
             
@@ -247,7 +243,7 @@ class Battle(db.Model):
     
     
     def run_battle(self) -> bool:
-        """Executa uma batalha. Se necessário, chama `shark()` para decidir a batalha.
+        """Executa uma batalha.
         
         Returns:
             bool: Verdadeiro se a batalha foi executada com sucesso, falso caso contrário.
@@ -368,12 +364,6 @@ def get_event_points(startup_id: int) -> int:
         
     return points;
  
-tournament_rules: dict[int, tuple[int, list[int]]] = {
-    4: (2, [2, 1]),
-    6: (3, [3, 1, 1]),
-    8: (3, [4, 2, 1]),
-}
-
 def delete_all_battles():
     db.session.query(Battle).delete();
     db.session.commit();

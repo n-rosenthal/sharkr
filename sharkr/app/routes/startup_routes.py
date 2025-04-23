@@ -157,7 +157,7 @@ def create_event(startup_id: int, event_type: str):
         try:
             event = Event(user_id=1, startup_id=startup_id, event_type=event_type);
         except:
-            event = Event(user_id=1, startup_id=startup_id, event_type=event_type, value=get_value(event_type));
+            event = Event(user_id=1, startup_id=startup_id, event_type=event_type);
             
         db.session.add(event)
         db.session.commit()
@@ -166,8 +166,7 @@ def create_event(startup_id: int, event_type: str):
         flash(f'Evento {event_type} registrado com sucesso!', 'success')
         
         #   Atualiza os pontos da startup
-        from app.models.startup import get_points
-        startup.points = get_points(startup_id);
+        startup.get_points();
         
         db.session.commit();
         
