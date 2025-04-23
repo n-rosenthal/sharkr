@@ -73,3 +73,9 @@ python3 run.py
 ```
 
 Se todas as instruções foram executadas com sucesso, o servidor estara pronto para ser acessado em http://127.0.0.1:5000/ (ou http://localhost:5000, normalmente, salvo modificações) e o banco de dados estará pronto para ser usado.
+
+A depender da shell utilizada para inicializar o sistema, é possível que outros passos precisem ser tomados. Em Windows, por exemplo, a PowerShell não executa comandos em ambiente virtual normalmente, então pode ser necessário chamar o interpretador do Python de dentro do diretório do ambiente virtual (`venv`). Se isto for necessário, mas não for feito, o programa pode não encontrar as bibliotecas necessárias para rodar.
+
+```bash
+.\\venv\scripts\python.exe run.py
+```
