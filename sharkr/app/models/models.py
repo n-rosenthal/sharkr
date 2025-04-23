@@ -441,7 +441,7 @@ class Tournament(db.Model):
     current_round   = db.Column(db.Integer, nullable=False)
     battles         = db.relationship('Battle', backref='tournament', lazy=True)
 
-    def __init__(self, startups: list[Startup] = []):
+    def __init__(self):
         """
         Construtor para objetos ``Tournament``.
         """
@@ -450,7 +450,15 @@ class Tournament(db.Model):
         self.battles        = [];
         self.name           = "";
         
-    def initialize(self, startups: list[Startup]):
+    def initialize(self, startups: list[Startup]) -> None:
+        """
+        Inicializa o torneio com as startups passadas como parâmetro.
+        
+        Parameters
+        ----------
+        startups : list[Startup]
+            Lista de startups participantes do torneio.
+        """
         self.name = f"Torneio de Startups (#{self.id})";
         self.next_round(startups);
         
@@ -461,6 +469,11 @@ class Tournament(db.Model):
     def next_round(self, startups: list[Startup]) -> None:
         """
         Avança o torneio para o próximo nível, se for possível.
+        
+        Parameters
+        ----------
+        startups : list[Startup]
+            Lista de startups participantes do torneio **neste round**.
         """
         with app.app_context():  # Garante que todo o código está no mesmo contexto
             if self.status == "completed":
@@ -500,7 +513,13 @@ class Tournament(db.Model):
                 raise  # Opcional: Logar o erro para debug
 
     def _create_battles(self, startups: list[Startup]) -> None:
-        """Cria batalhas para a lista de startups."""
+        """Cria batalhas para a lista de startups.
+        
+        Parameters
+        ----------
+        startups : list[Startup]
+            Lista de startups participantes do torneio **neste round**.
+        """
         while len(startups) >= 2:
             random.shuffle(startups)
             a = db.session.merge(startups.pop())  # Mescla na sessão atual
