@@ -48,9 +48,13 @@
       <!--  Exibe o vencedor, se o torneio já houver sido terminado -->
     {% if current_tournament %}
       {% if current_tournament.status == 'completed' %}
-        <div class="card-body">
+        <div class="card-body bg-warning text-dark winner-card">
           <h3 class="text-center">Torneio Finalizado!</h3>
-          <h4 class="text-center">Vencedor: {{ tournament_winner }}</h4>
+          <div class="text-center">
+            <h4>Vencedor:</h4>
+            <div class="display-4">{{ tournament_winner.name }}</div>
+            <p class="lead">{{ tournament_winner.slogan }}</p>
+          </div>
         </div>
       {% endif %}
     {% endif %}
@@ -71,7 +75,18 @@
       <div class="card-body">
         <p class="text-muted">Nenhuma batalha no torneio ainda.</p>
       </div>    
-    </div>
     {% endif %}
+
+
+    <style>
+      .winner-card {
+        background-color: #ffeb3b;
+        color: #212529;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        margin: 1rem 1rem 1rem 1rem;
+      }
+    </style>
 {% endblock %}
 

@@ -49,8 +49,8 @@ def index():
     
     return render_template('reports/index.html',
                            entries=entries,
-                           startups=(Startup.query.all()),
-                           tournaments=Tournament.query.all(),
+                           startups=sorted(Startup.query.all(), key=lambda x: x.get_points(), reverse=True),
+                           tournaments=[x.name for x in Tournament.query.all()],
                            event_count=event_count);
 
 #   Relatório com o vencedor do torneio

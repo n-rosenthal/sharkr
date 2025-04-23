@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, current_app
 from app.extensions import db
 from app.models.models import Battle, Startup, Event, Tournament
 
@@ -34,12 +34,22 @@ def entry(id: int):
 
     return render_template('battles/entry.html', battle=battle, tournament=db.session.query(Tournament).get(battle.tournament_id), startup_a=startup_a, startup_b=startup_b, events_a=events_a, events_b=events_b);
 
+#   Criar uma batalha
 @battle_bp.route('/create/<int:tournament_id>/<int:startup_a_id>/<int:startup_b_id>', methods=['POST'])
 def create(tournament_id, startup_a_id, startup_b_id):
-    battle = Battle(tournament_id, 1, startup_a_id, startup_b_id, 'in_progress')
-    db.session.add(battle)
-    db.session.commit()
-    return redirect(url_for('tournament.index', id=tournament_id))
+    with current_app.app_context():
+        try:
+            battle = Battle(tournament_id, 1, startup_a_id, startup_b_id, 'in_progress')
+            
+            flash(f"Criou a batalha {str(battle)}?", 'success');
+            
+            db.session.add(battle);
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Não conseguiu criara a batalha: {e}", 'danger');
+            return redirect(url_for('tournament.index', id=tournament_id));
+    return redirect(url_for('tournament.index', id=tournament_id));
 
 #   Rodar uma batalha
 @battle_bp.route('/run_battle/<int:id>', methods=['POST'])
